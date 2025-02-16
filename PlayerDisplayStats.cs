@@ -28,7 +28,7 @@ public class SpeedDisplay : MonoBehaviour
         {
             // Обновляем текст с информацией о здоровье
             healthText.text = $"Health: {playerHealth.health}";
-            isMovingText.color = PlayerHealth.health > 0 ? Color.green : Color.red;
+            healthText.color = playerHealth.health > 0 ? Color.green : Color.red;
         }
 
         if (playerController != null && isMovingText != null)
