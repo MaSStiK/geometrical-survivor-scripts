@@ -6,7 +6,8 @@ public class EnemyAI : MonoBehaviour
     public float speed = 3f;
     private Transform player;
     private PlayerHealth playerHealth;
-    private bool canDamage = true; // Флаг, можно ли наносить урон
+    private static float lastDamageTime = 0f; // Время последнего урона
+    private static float damageCooldown = 1f; // Задержка перед нанесением урона
 
     void Start()
     {
@@ -29,17 +30,13 @@ public class EnemyAI : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.CompareTag("Player") && canDamage)
+        if (collision.CompareTag("Player"))
         {
-            playerHealth?.TakeDamage(1); // Наносим 1 урон
-            StartCoroutine(DamageCooldown()); // Запускаем задержку перед следующим уроном
+            if (Time.time - lastDamageTime >= damageCooldown) // Проверяем, прошло ли достаточно времени
+            {
+                playerHealth?.TakeDamage(1); // Наносим 1 урон
+                lastDamageTime = Time.time; // Обновляем время последнего урона
+            }
         }
-    }
-
-    private IEnumerator DamageCooldown()
-    {
-        canDamage = false;
-        yield return new WaitForSeconds(1f); // Ждём 1 секунду перед следующим уроном
-        canDamage = true;
     }
 }
