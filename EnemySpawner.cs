@@ -3,7 +3,7 @@ using UnityEngine;
 public class EnemySpawner : MonoBehaviour
 {
     public GameObject enemyPrefab; // Префаб врага
-    public float spawnRadius = 10f; // Радиус за пределами экрана, где появляются враги
+    public float spawnRadius = 1f; // Радиус за пределами экрана, где появляются враги
     public float spawnInterval = 2f; // Интервал спавна
 
     private Camera mainCamera;
