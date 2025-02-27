@@ -1,11 +1,9 @@
 using UnityEngine;
 using TMPro;
 
-public class SpeedDisplay : MonoBehaviour
+public class PlayerDisplayStats : MonoBehaviour
 {
-    public TextMeshProUGUI speedText; // Ссылка на UI-текст скорости
-    public TextMeshProUGUI healthText; // Ссылка на UI-текст здоровья
-    public TextMeshProUGUI isMovingText; // Ссылка на UI-текст движения
+    public TextMeshProUGUI playerStatsText; // Ссылка на UI-текст скорости
     private PlayerController playerController;
     private PlayerHealth playerHealth;
 
@@ -18,24 +16,10 @@ public class SpeedDisplay : MonoBehaviour
 
     void Update()
     {
-        if (playerController != null && speedText != null)
-        {
-            // Обновляем текст с информацией о скорости
-            speedText.text = $"Speed: {playerController.velocity.magnitude:F2}";
-        }
 
-        if (playerHealth != null && healthText != null)
-        {
-            // Обновляем текст с информацией о здоровье
-            healthText.text = $"Health: {playerHealth.health}";
-            healthText.color = playerHealth.health > 0 ? Color.green : Color.red;
-        }
-
-        if (playerController != null && isMovingText != null)
-        {
-            // Обновляем текст о движении
-            isMovingText.text = "IsMoving";
-            isMovingText.color = playerController.IsMoving ? Color.green : Color.red;
-        }
+        playerStatsText.text = $@"Player
+Speed: {playerController.velocity.magnitude:F2}
+Health: {playerHealth.health}
+IsMoving: {playerController.IsMoving}";
     }
 }
