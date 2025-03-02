@@ -8,7 +8,7 @@ public class EnemyAI : MonoBehaviour
     public int attackDamage = 1;  // Урон врага
 
     // Событие, которое будет вызываться при смерти врага
-    public event Action OnDeath;
+    public event Action OnDeath; // Событие для отслеживания смерти врага
 
     private Transform player;
     private PlayerHealth playerHealth;
@@ -66,7 +66,7 @@ public class EnemyAI : MonoBehaviour
         // Вызываем событие OnDeath
         OnDeath?.Invoke();
 
-        // Удаляем врага с экрана
+        // Удаляем врага
         Destroy(gameObject);
     }
 }

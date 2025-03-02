@@ -4,6 +4,7 @@ public class Bullet : MonoBehaviour
 {
     public float maxLifetime = 5f; // Время жизни пули
     public float maxDistance = 15f; // Максимальная дистанция полета
+    public int damage = 50; // Урон пули
 
     private Vector3 startPosition;
     private Rigidbody2D rb;
@@ -36,8 +37,13 @@ public class Bullet : MonoBehaviour
     {
         if (collision.CompareTag("Enemy")) // Если попали во врага
         {
-            Destroy(collision.gameObject); // Удаляем врага
-            Destroy(gameObject); // Удаляем пулю
+            EnemyAI enemy = collision.GetComponent<EnemyAI>(); // Получаем скрипт врага
+            if (enemy != null)
+            {
+                enemy.TakeDamage(damage); // Наносим урон
+            }
+
+            Destroy(gameObject); // Удаляем пулю после попадания
         }
     }
 }

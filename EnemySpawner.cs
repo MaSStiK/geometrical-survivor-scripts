@@ -15,6 +15,7 @@ public class EnemySpawner : MonoBehaviour
     private Dictionary<string, GameObject> enemyPrefabs = new Dictionary<string, GameObject>();
     private List<Enemy> enemiesQueue = new List<Enemy>(); // Очередь врагов для спавна
     private int totalEnemies = 0;
+    private int aliveEnemies = 0; // Количество живых врагов
 
     void Start()
     {
@@ -33,6 +34,7 @@ public class EnemySpawner : MonoBehaviour
         canSpawn = true;
         enemiesQueue = new List<Enemy>(enemies);
         totalEnemies = enemiesQueue.Sum(e => e.amount);
+        aliveEnemies = totalEnemies; // Изначально живых врагов столько же, сколько спавним
 
         StartCoroutine(SpawnEnemyWave());
     }
@@ -48,13 +50,11 @@ public class EnemySpawner : MonoBehaviour
             {
                 SpawnEnemy(randomEnemyType);
                 totalEnemies--;
-                Debug.Log($"Спавн {randomEnemyType}, всего осталось {totalEnemies}");
+                Debug.Log($"Спавн {randomEnemyType}");
             }
 
             yield return new WaitForSeconds(spawnInterval);
         }
-
-        // gameManager.GameFinished(); // Все враги закончились
     }
 
     private string GetRandomEnemyType()
@@ -76,7 +76,14 @@ public class EnemySpawner : MonoBehaviour
         Vector3 spawnPosition = GetRandomSpawnPosition();
         if (enemyPrefabs.TryGetValue(enemyType, out GameObject enemyPrefab))
         {
-            Instantiate(enemyPrefab, spawnPosition, Quaternion.identity);
+            GameObject enemyObj = Instantiate(enemyPrefab, spawnPosition, Quaternion.identity);
+
+            // Подписываемся на смерть врага
+            EnemyAI enemyAI = enemyObj.GetComponent<EnemyAI>();
+            if (enemyAI != null)
+            {
+                enemyAI.OnDeath += HandleEnemyDeath;
+            }
         }
         else
         {
@@ -101,6 +108,19 @@ public class EnemySpawner : MonoBehaviour
         }
 
         return spawnPos;
+    }
+
+    private void HandleEnemyDeath()
+    {
+        aliveEnemies--;
+
+        Debug.Log($"Враг уничтожен! Осталось {aliveEnemies} врагов.");
+
+        if (aliveEnemies <= 0)
+        {
+            Debug.Log("Все враги уничтожены! Завершаем игру.");
+            gameManager.GameFinished();
+        }
     }
 }
 
