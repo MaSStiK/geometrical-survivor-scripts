@@ -1,6 +1,7 @@
+using System;
 using System.Collections.Generic;
 
-[System.Serializable]
+[Serializable]
 public class Novel
 {
     public string name;
@@ -10,7 +11,7 @@ public class Novel
     public string windowColor;
 }
 
-[System.Serializable]
+[Serializable]
 public class NovelData
 {
     public List<Novel> novel;

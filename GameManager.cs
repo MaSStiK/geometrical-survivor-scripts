@@ -1,49 +1,121 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
-    public GameObject novelGUI;  // Canvas с новеллой
-    public GameObject gameGUI;   // Canvas с игровым интерфейсом
-    public PlayerController playerController;  // Присваиваем ссылку на PlayerController
-    public EnemySpawner enemySpawner; // Спавнер врагов (или управление спавном)
+    public NovelManager novelManager;
+    public GameObject novelGUI;  
+    public GameObject gameGUI;   
+    public PlayerController playerController;
+    public EnemySpawner enemySpawner;
 
-    private bool isGameStarted = false;  // Проверка, началась ли игра
+    private Queue<GameSequence> eventQueue;  
 
     void Start()
     {
-        // В начале показываем только интерфейс новеллы
-        if (novelGUI != null) novelGUI.SetActive(true);
-        if (gameGUI != null) gameGUI.SetActive(false);
-        
-        // Ожидаем начала игры
-        playerController.canMove = false;
-        enemySpawner.canSpawn = false;
+        LoadGameStructure();
+        ProcessNextEvent();
     }
 
-    void Update()
+    private void LoadGameStructure()
     {
-        // Переключение с новеллы на игровое состояние по нажатию клавиши (например, "N")
-        if (Input.GetKeyDown(KeyCode.N) && !isGameStarted)
+        TextAsset jsonFile = Resources.Load<TextAsset>("GameStructureData"); // Файл должен быть в "Assets/Resources/GameStructureData.json"
+
+        if (jsonFile == null)
         {
-            StartGame();
+            Debug.LogError("Не удалось загрузить GameStructureData.json!");
+            return;
+        }
+
+        GameLevel gameLevel = JsonUtility.FromJson<GameLevel>(jsonFile.text);
+        eventQueue = new Queue<GameSequence>(gameLevel.game_level);
+    }
+
+    private void ProcessNextEvent()
+    {
+        if (eventQueue == null || eventQueue.Count == 0)
+        {
+            Debug.Log("Игра завершена.");
+            return;
+        }
+
+        GameSequence gameSequence = eventQueue.Dequeue();
+
+        switch (gameSequence.type)
+        {
+            case "novel":
+                StartNovel(gameSequence.novel_name, 0);
+                break;
+
+            case "game":
+                StartGame(gameSequence.enemies);
+                break;
+
+            case "message":
+                Debug.Log("Game message: " + gameSequence.message);
+                break;
+
+            default:
+                Debug.LogError("Неизвестный тип события: " + gameSequence.type);
+                ProcessNextEvent(); 
+                break;
         }
     }
 
-    void StartGame()
+    private void StartNovel(string novelName, int novelStartIndex)
     {
-        // Убираем новелл GUI и показываем Game GUI
-        if (novelGUI != null) novelGUI.SetActive(false);
-        if (gameGUI != null) gameGUI.SetActive(true);
-        
-        // Активируем игрока и спавнера врагов
-        playerController.canMove = true;
-        enemySpawner.canSpawn = true;
-        
-        
-        // Начинаем игру
-        isGameStarted = true;
+        SetVisibleGUI("novel");
+        novelManager.StartNovel(novelName, novelStartIndex);
+        Debug.Log("Старт новеллы: " + novelName);
+    }
 
-        // Дополнительные действия, если нужно (например, музыка, анимации, etc.)
-        Debug.Log("Игра началась!");
+    private void StartGame(List<Enemy> enemies)
+    {
+        SetVisibleGUI("game");
+        enemySpawner.SpawnEnemies(enemies);
+        int totalEnemies = CountEnemies(enemies);
+        Debug.Log($"Старт битвы! Всего врагов в волне: {totalEnemies}");
+    }
+
+    private void SetVisibleGUI(string guiName)
+    {
+        switch (guiName)
+        {
+            case "novel":
+                novelGUI.SetActive(true);
+                gameGUI.SetActive(false);
+                playerController.canMove = false;
+                enemySpawner.canSpawn = false;
+                break;
+
+            case "game":
+                novelGUI.SetActive(false);
+                gameGUI.SetActive(true);
+                playerController.canMove = true;
+                enemySpawner.canSpawn = true;
+                break;
+        }
+    }
+
+    private int CountEnemies(List<Enemy> enemies)
+    {
+        int totalEnemies = 0;
+        foreach (Enemy enemy in enemies)
+        {
+            totalEnemies += enemy.amount;
+        }
+        return totalEnemies;
+    }
+
+    public void NovelFinished()
+    {
+        Debug.Log("Новелла завершена, переключаемся на следующий этап...");
+        ProcessNextEvent();
+    }
+
+    public void GameFinished()
+    {
+        Debug.Log("Битва завершена, переключаемся на следующий этап...");
+        ProcessNextEvent();
     }
 }

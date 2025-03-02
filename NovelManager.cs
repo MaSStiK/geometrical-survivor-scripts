@@ -6,6 +6,7 @@ using TMPro;
 
 public class NovelManager : MonoBehaviour
 {
+    public GameManager gameManager; // Ссылка на GameManager
     public TextMeshProUGUI characterName;
     public TextMeshProUGUI novelText;
     public Image portraitImage;
@@ -16,38 +17,40 @@ public class NovelManager : MonoBehaviour
     private List<Novel> novel;
     private int currentIndex = 0;
 
-    void Start()
+    public void StartNovel(string novelName, int novelStartIndex)
     {
-        LoadNovel();
-        ShowNovel(0);
+        Debug.Log($"StartNovel {novelName} {novelStartIndex}");
+        LoadNovel(novelName); // Название файла новеллы, по умолчанию Novel_start
+        ShowNovel(novelStartIndex); // С какой позиции начать, по умолчанию 0
     }
 
-    void LoadNovel()
+    private void LoadNovel(string novelName)
     {
         // Загружаем JSON-файл из папки Resources
-        TextAsset novelJson = Resources.Load<TextAsset>("Novel"); // Файл должен быть в "Assets/Resources/Novel.json"
-        if (novelJson != null)
+        TextAsset novelJson = Resources.Load<TextAsset>("Novels/" + novelName); // Файл должен быть в "Assets/Resources/Novels/{novelName}.json"
+        if (novelJson == null)
         {
-            NovelData data = JsonUtility.FromJson<NovelData>(novelJson.text);
-            novel = data.novel;
+            Debug.LogError($"Не удалось загрузить {novelName}.json!");
+            return;
         }
-        else
-        {
-            Debug.LogError("Не удалось загрузить Novel.json!");
-        }
+
+        NovelData data = JsonUtility.FromJson<NovelData>(novelJson.text);
+        novel = data.novel;
     }
 
-    public void ShowNovel(int index)
+    private void ShowNovel(int index)
     {
         if (index < 0 || index >= novel.Count)
+        {
+            Debug.LogError($"ShowNovel: Указан не верный index ({index}) для отображения новеллы!");
             return;
+        }
 
         currentIndex = index;
         Novel currentData = novel[currentIndex];
 
         characterName.text = currentData.name;
         novelText.text = currentData.text;
-        // novelWindow.color = GetColorFromString(currentData.windowColor);
 
         // Устанавливаем портрет
         Sprite portrait = Resources.Load<Sprite>("Characters/" + currentData.spriteName);
@@ -61,23 +64,14 @@ public class NovelManager : MonoBehaviour
 
         // Обновляем доступность кнопок
         prevButton.interactable = currentIndex > 0;
-        nextButton.interactable = currentIndex < novel.Count - 1;
+        nextButton.interactable = currentIndex < novel.Count;
     }
 
     private void ChangeFont(string fontName)
     {
-        string fontFile;
+        string fontFile = GetFontFile(fontName);
 
-        // Используем switch для выбора языка
-        switch (fontName)
-        {
-            case "anime":
-                fontFile = "Anime Ace v3 SDF";
-                break;
-            default:
-                fontFile = "Asinastra SDF";
-                break;
-        }
+
         // Загружаем шрифт из папки Resources
         TMP_FontAsset newFont = Resources.Load<TMP_FontAsset>("Fonts/" + fontFile); // Путь к шрифтам в Resources/Fonts
 
@@ -98,7 +92,12 @@ public class NovelManager : MonoBehaviour
         {
             ShowNovel(currentIndex + 1);
         }
+        else
+        {
+            gameManager.NovelFinished(); // Сообщаем GameManager, что новелла закончилась
+        }
     }
+
 
     public void NovelPrev()
     {
@@ -108,14 +107,13 @@ public class NovelManager : MonoBehaviour
         }
     }
 
-    private Color GetColorFromString(string color)
+    private string GetFontFile(string font)
     {
-        switch (color.ToLower())
+        switch (font)
         {
-            case "blue": return Color.blue;
-            case "red": return Color.red;
-            case "green": return Color.green;
-            default: return Color.white;
+            case "anime": return "Anime Ace v3 SDF";
+            case "default": return "Asinastra SDF";
+            default: return "Asinastra SDF";
         }
     }
 }
