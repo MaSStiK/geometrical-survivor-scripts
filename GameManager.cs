@@ -66,6 +66,8 @@ public class GameManager : MonoBehaviour
     {
         SetVisibleGUI("novel");
         novelManager.StartNovel(novelName, novelStartIndex);
+        playerController.canMove = false;
+        enemySpawner.canSpawn = false;
         Debug.Log("Старт новеллы: " + novelName);
     }
 
@@ -73,6 +75,8 @@ public class GameManager : MonoBehaviour
     {
         SetVisibleGUI("game");
         enemySpawner.SpawnEnemies(enemies);
+        playerController.canMove = true;
+        enemySpawner.canSpawn = true;
         int totalEnemies = CountEnemies(enemies);
         Debug.Log($"Старт битвы! Всего врагов в волне: {totalEnemies}");
     }
@@ -84,15 +88,11 @@ public class GameManager : MonoBehaviour
             case "novel":
                 novelGUI.SetActive(true);
                 gameGUI.SetActive(false);
-                playerController.canMove = false;
-                enemySpawner.canSpawn = false;
                 break;
 
             case "game":
                 novelGUI.SetActive(false);
                 gameGUI.SetActive(true);
-                playerController.canMove = true;
-                enemySpawner.canSpawn = true;
                 break;
         }
     }
