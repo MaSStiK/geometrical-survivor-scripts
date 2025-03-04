@@ -4,8 +4,8 @@ using UnityEngine;
 public class GameManager : MonoBehaviour
 {
     public NovelManager novelManager;
-    public GameObject novelGUI;  
-    public GameObject gameGUI;   
+    public GameObject NovelGUI;  
+    public GameObject GameGUI;   
     public PlayerController playerController;
     public EnemySpawner enemySpawner;
 
@@ -66,8 +66,8 @@ public class GameManager : MonoBehaviour
     {
         SetVisibleGUI("novel");
         novelManager.StartNovel(novelName, novelStartIndex);
-        playerController.canMove = false;
-        enemySpawner.canSpawn = false;
+        playerController.CanMove = false;
+        enemySpawner.CanSpawn = false;
         Debug.Log("Старт новеллы: " + novelName);
     }
 
@@ -75,8 +75,8 @@ public class GameManager : MonoBehaviour
     {
         SetVisibleGUI("game");
         enemySpawner.SpawnEnemies(enemies);
-        playerController.canMove = true;
-        enemySpawner.canSpawn = true;
+        playerController.CanMove = true;
+        enemySpawner.CanSpawn = true;
         int totalEnemies = CountEnemies(enemies);
         Debug.Log($"Старт битвы! Всего врагов в волне: {totalEnemies}");
     }
@@ -86,13 +86,13 @@ public class GameManager : MonoBehaviour
         switch (guiName)
         {
             case "novel":
-                novelGUI.SetActive(true);
-                gameGUI.SetActive(false);
+                NovelGUI.SetActive(true);
+                GameGUI.SetActive(false);
                 break;
 
             case "game":
-                novelGUI.SetActive(false);
-                gameGUI.SetActive(true);
+                NovelGUI.SetActive(false);
+                GameGUI.SetActive(true);
                 break;
         }
     }

@@ -2,41 +2,39 @@
 
 public class CameraFollow : MonoBehaviour
 {
-    public Transform target;
-    public float cameraSmoothSpeed = 3f;
-
-    public float lookAheadDistance = 2.5f; // Насколько вперед смещать камеру
-    public float lookAheadSmoothSpeed = 5f; // Скорость интерполяции взгляда
-    public bool DrawGizmos = false;
+    public Transform Target;
+    [SerializeField] private float cameraSmoothSpeed = 3f; // Скорость движения камеры
+    [SerializeField] private float lookAheadDistance = 2.5f; // Насколько вперед смещать камеру
+    [SerializeField] private float lookAheadSmoothSpeed = 5f; // Ускорение интерполяции в сторону взгляда
+    [SerializeField] private bool doDrawGizmos = false;
 
     private Vector3 offset;
     private Vector3 lastTargetPosition;
     private Vector3 lookAheadVector;
-
     private PlayerController playerController;
 
     private void Start() {
-        if (target == null) return;
+        if (Target == null) return;
 
-        offset = transform.position - target.position;
-        lastTargetPosition = target.position;
+        offset = transform.position - Target.position;
+        lastTargetPosition = Target.position;
 
         // Получаем PlayerController, если он есть на target
-        playerController = target.GetComponent<PlayerController>();
+        playerController = Target.GetComponent<PlayerController>();
     }
 
     private void Update() {
-        if (target == null) return;
+        if (Target == null) return;
 
-        Vector3 targetPos = target.position + offset;
+        Vector3 targetPos = Target.position + offset;
 
         // Проверяем, есть ли PlayerController и двигается ли игрок
         bool isMoving = playerController != null && playerController.IsMoving;
 
         if (isMoving) {
             // Вычисляем скорость движения персонажа
-            Vector3 velocity = (target.position - lastTargetPosition) / Time.deltaTime;
-            lastTargetPosition = target.position;
+            Vector3 velocity = (Target.position - lastTargetPosition) / Time.deltaTime;
+            lastTargetPosition = Target.position;
 
             // Смещаем точку слежения в сторону движения
             Vector3 targetLookAhead = velocity.normalized * lookAheadDistance;
@@ -46,14 +44,14 @@ public class CameraFollow : MonoBehaviour
         }
 
         // Добавляем опережение к целевой позиции камеры
-        targetPos = target.position + offset + lookAheadVector;
+        targetPos = Target.position + offset + lookAheadVector;
 
         // Плавно перемещаем камеру
         transform.position = Vector3.Lerp(transform.position, targetPos, cameraSmoothSpeed * Time.deltaTime);
     }
 
     private void OnDrawGizmos() {
-        if (DrawGizmos) {
+        if (doDrawGizmos) {
             Gizmos.color = Color.green;
             Vector3 lineEndPosition = transform.position + lookAheadVector;
             Gizmos.DrawLine(transform.position, lineEndPosition);

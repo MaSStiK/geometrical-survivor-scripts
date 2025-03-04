@@ -3,54 +3,53 @@ using UnityEngine.UI; // Для работы с Image
 
 public class PlayerHealth : MonoBehaviour
 {
-    public int maxHealth = 10;
-    public int health { get; private set; }
+    public int MaxHealth = 10;
+    public int Health { get; private set; }
 
-    public Image healthBar; // Ссылка на саму полоску здоровья
-    public Image healthBarBackground; // Ссылка на фон полоски здоровья
-    public Transform healthBarPosition; // Позиция для отображения полоски (например, над головой игрока)
+    public Image HealthBar; // Ссылка на саму полоску здоровья
+    public Image HealthBarBackground; // Ссылка на фон полоски здоровья
+    public Transform HealthBarPosition; // Позиция для отображения полоски
 
     private void Start()
     {
-        health = maxHealth;
+        Health = MaxHealth;
 
         // Инициализируем полоску здоровья
-        if (healthBar != null)
+        if (HealthBar != null)
         {
-            healthBar.fillAmount = (float)health / maxHealth; // Устанавливаем начальное значение полоски
+            HealthBar.fillAmount = (float)Health / MaxHealth; // Устанавливаем начальное значение полоски
         }
 
-        if (healthBarBackground != null)
+        if (HealthBarBackground != null)
         {
-            // Убедимся, что фон полоски отображается правильно
-            healthBarBackground.fillAmount = 1f; // Полоска фона должна быть заполнена полностью
+            HealthBarBackground.fillAmount = 1f; // Полоска фона должна быть заполнена полностью
         }
     }
 
     private void FixedUpdate()
     {
         // Обновляем позицию полоски здоровья, чтобы она следовала за игроком
-        if (healthBar != null && healthBarPosition != null)
+        if (HealthBar != null && HealthBarPosition != null)
         {
-            Vector3 screenPosition = Camera.main.WorldToScreenPoint(healthBarPosition.position); 
-            healthBar.transform.position = screenPosition;  // Перемещаем полоску в мировые координаты
-            healthBarBackground.transform.position = screenPosition;  // Перемещаем фон
+            Vector3 screenPosition = Camera.main.WorldToScreenPoint(HealthBarPosition.position); 
+            HealthBar.transform.position = screenPosition;  // Перемещаем полоску в мировые координаты
+            HealthBarBackground.transform.position = screenPosition;  // Перемещаем фон
         }
     }
 
     public void TakeDamage(int amount)
     {
-        health = Mathf.Max(0, health - amount); // Защита от отрицательного здоровья
+        Health = Mathf.Max(0, Health - amount); // Защита от отрицательного здоровья
 
         // Обновляем полоску здоровья
-        if (healthBar != null)
+        if (HealthBar != null)
         {
-            healthBar.fillAmount = (float)health / maxHealth; // Обновляем ширину полоски
+            HealthBar.fillAmount = (float)Health / MaxHealth; // Обновляем ширину полоски
         }
 
-        Debug.Log("Игрок получил урон! Здоровье: " + health);
+        Debug.Log($"Игрок получил урон! Здоровье: {Health}");
 
-        if (health <= 0)
+        if (Health <= 0)
         {
             Die();
         }

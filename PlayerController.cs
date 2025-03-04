@@ -2,15 +2,14 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    public float speed = 5f;
-    public float deceleration = 40;
+    public float Speed = 5f;
+    public float Deceleration = 20f;
     public bool IsMoving { get; private set; }
-
-    public Vector2 velocity { get; private set; }
+    public Vector2 Velocity { get; private set; }
+    
     private Rigidbody2D rb;
 
-    // Переменная для блокировки управления
-    public bool canMove = false;  // Переключаемое состояние (по умолчанию false, т.е. управление не активно)
+    public bool CanMove = false;  // Переключаемое состояние (по умолчанию false, т.е. управление не активно)
 
     void Start()
     {
@@ -20,7 +19,7 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
         // Если движение заблокировано
-        if (!canMove)
+        if (!CanMove)
         {
             IsMoving = false;
             return;  // Выход из функции, если управление заблокировано
@@ -35,18 +34,18 @@ public class PlayerController : MonoBehaviour
         if (input.magnitude > 0)
         {
             input.Normalize();
-            velocity = input * speed;
+            Velocity = input * Speed;
         }
         else
         {
-            velocity = Vector2.Lerp(velocity, Vector2.zero, deceleration * Time.deltaTime);
+            Velocity = Vector2.Lerp(Velocity, Vector2.zero, Deceleration * Time.deltaTime);
         }
 
-        IsMoving = velocity.magnitude > 0.1f;
+        IsMoving = Velocity.magnitude >= Speed;
     }
 
     void FixedUpdate()
     {
-        rb.linearVelocity = velocity;  // Управление движением в физическом обновлении
+        rb.linearVelocity = Velocity;  // Управление движением в физическом обновлении
     }
 }

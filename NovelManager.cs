@@ -6,13 +6,13 @@ using TMPro;
 
 public class NovelManager : MonoBehaviour
 {
-    public GameManager gameManager; // Ссылка на GameManager
-    public TextMeshProUGUI characterName;
-    public TextMeshProUGUI novelText;
-    public Image portraitImage;
-    public Image novelWindow;
-    public Button nextButton;
-    public Button prevButton;
+    public GameManager gameManager;
+    public TextMeshProUGUI CharacterName;
+    public TextMeshProUGUI NovelText;
+    public Image PortraitImage;
+    public Image NovelWindow;
+    public Button NextButton;
+    public Button PrevButton;
 
     private List<Novel> novel;
     private int currentIndex = 0;
@@ -49,22 +49,22 @@ public class NovelManager : MonoBehaviour
         currentIndex = index;
         Novel currentData = novel[currentIndex];
 
-        characterName.text = currentData.name;
-        novelText.text = currentData.text;
+        CharacterName.text = currentData.name;
+        NovelText.text = currentData.text;
 
         // Устанавливаем портрет
         Sprite portrait = Resources.Load<Sprite>("Characters/" + currentData.spriteName);
         if (portrait != null)
         {
-            portraitImage.sprite = portrait;
+            PortraitImage.sprite = portrait;
         }
 
         // Меняем шрифт в зависимости от значения в JSON
         ChangeFont(currentData.font);
 
         // Обновляем доступность кнопок
-        prevButton.interactable = currentIndex > 0;
-        nextButton.interactable = currentIndex < novel.Count;
+        PrevButton.interactable = currentIndex > 0;
+        NextButton.interactable = currentIndex < novel.Count;
     }
 
     private void ChangeFont(string fontName)
@@ -78,7 +78,7 @@ public class NovelManager : MonoBehaviour
         // Если шрифт найден, применяем его
         if (newFont != null)
         {
-            novelText.font = newFont;
+            NovelText.font = newFont;
         }
         else
         {

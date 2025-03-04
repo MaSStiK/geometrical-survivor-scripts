@@ -3,14 +3,13 @@ using System;
 
 public class EnemyAI : MonoBehaviour
 {
-    public float speed = 3f; // Скорость врага
-    public int health = 10;  // Здоровье врага
-    public int attackDamage = 1;  // Урон врага
-
-    // Событие, которое будет вызываться при смерти врага
     public event Action OnDeath; // Событие для отслеживания смерти врага
 
-    private Transform player;
+    public float EnemySpeed = 3f; // Дефолтная скорость врага
+    public float EnemyHealth = 10f;  // Дефолтное здоровье врага
+    public int EnemyDamage = 1;  // Дефолтный урон врага
+
+    private Transform Player;
     private PlayerHealth playerHealth;
     private static float lastDamageTime = 0f; // Время последнего урона
     private static float damageCooldown = 1f; // Задержка перед нанесением урона
@@ -21,16 +20,16 @@ public class EnemyAI : MonoBehaviour
 
         if (playerObject != null)
         {
-            player = playerObject.transform;
+            Player = playerObject.transform;
             playerHealth = playerObject.GetComponent<PlayerHealth>(); // Получаем компонент здоровья игрока
         }
     }
 
     void Update()
     {
-        if (player != null)
+        if (Player != null)
         {
-            transform.position = Vector2.MoveTowards(transform.position, player.position, speed * Time.deltaTime);
+            transform.position = Vector2.MoveTowards(transform.position, Player.position, EnemySpeed * Time.deltaTime);
         }
     }
 
@@ -40,7 +39,7 @@ public class EnemyAI : MonoBehaviour
         {
             if (Time.time - lastDamageTime >= damageCooldown) // Проверяем, прошло ли достаточно времени
             {
-                playerHealth?.TakeDamage(attackDamage); // Наносим урон игроку
+                playerHealth?.TakeDamage(EnemyDamage); // Наносим урон игроку
                 lastDamageTime = Time.time; // Обновляем время последнего урона
             }
         }
@@ -49,9 +48,9 @@ public class EnemyAI : MonoBehaviour
     // Метод, который будет вызываться при получении урона
     public void TakeDamage(int damage)
     {
-        health -= damage;
+        EnemyHealth -= damage;
 
-        if (health <= 0)
+        if (EnemyHealth <= 0)
         {
             Die();  // Если здоровье <= 0, вызываем смерть врага
         }
@@ -60,9 +59,6 @@ public class EnemyAI : MonoBehaviour
     // Метод для смерти врага
     private void Die()
     {
-        // Действия, которые нужно выполнить при смерти врага
-        Debug.Log("Враг погиб!");
-
         // Вызываем событие OnDeath
         OnDeath?.Invoke();
 

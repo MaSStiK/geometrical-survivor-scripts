@@ -3,10 +3,10 @@ using System.Linq;
 
 public class AutoShooting : MonoBehaviour
 {
-    public GameObject bulletPrefab; // Префаб пули
-    public float bulletSpeed = 10f; // Скорость пули
-    public float fireRate = 0.5f; // Интервал выстрела
-    public float detectionRadius = 10f; // Радиус обнаружения врагов
+    public GameObject BulletPrefab; // Префаб пули
+    public float bulletSpeed = 20f; // Скорость пули
+    public float fireRate = 1f; // Интервал выстрела
+    public float detectionRadius = 6f; // Радиус обнаружения врагов
 
     private float nextFireTime = 0f;
 
@@ -37,7 +37,7 @@ public class AutoShooting : MonoBehaviour
     {
         Vector2 direction = (enemy.position - transform.position).normalized;
 
-        GameObject bullet = Instantiate(bulletPrefab, transform.position, Quaternion.identity);
+        GameObject bullet = Instantiate(BulletPrefab, transform.position, Quaternion.identity);
         Rigidbody2D rb = bullet.GetComponent<Rigidbody2D>();
 
         if (rb != null)

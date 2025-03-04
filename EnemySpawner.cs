@@ -7,15 +7,17 @@ public class EnemySpawner : MonoBehaviour
 {
     public List<EnemyPrefabData> enemyPrefabsList; // Список типов врагов и их префабов
     public GameManager gameManager;
-    public float spawnRadius = 1f; // Радиус за пределами экрана, где появляются враги
-    public float spawnInterval = 1f; // Интервал спавна
-    public bool canSpawn = false;
+    [SerializeField] private float spawnRadius = 1f; // Радиус за пределами экрана, где появляются враги
+    [SerializeField] private float spawnInterval = 1f; // Интервал спавна
+    public bool CanSpawn = false;
+
+    public int TotalEnemiesCount { get; private set; } // Общее количество врагов в волне
+    public int AliveEnemiesCount { get; private set; } // Количество живых врагов
+    private int spawnEnemiesCount; // Число врагов которое нужно заспавнить
 
     private Camera mainCamera;
     private Dictionary<string, GameObject> enemyPrefabs = new Dictionary<string, GameObject>();
     private List<Enemy> enemiesQueue = new List<Enemy>(); // Очередь врагов для спавна
-    private int totalEnemies = 0;
-    private int aliveEnemies = 0; // Количество живых врагов
 
     void Start()
     {
@@ -31,26 +33,26 @@ public class EnemySpawner : MonoBehaviour
     {
         if (enemies == null || enemies.Count == 0) return;
 
-        canSpawn = true;
+        CanSpawn = true;
         enemiesQueue = new List<Enemy>(enemies);
-        totalEnemies = enemiesQueue.Sum(e => e.amount);
-        aliveEnemies = totalEnemies; // Изначально живых врагов столько же, сколько спавним
+        spawnEnemiesCount = enemiesQueue.Sum(e => e.amount);
+        TotalEnemiesCount = CountEnemies(enemies);
+        AliveEnemiesCount = TotalEnemiesCount; // Изначально количество врагов равно максимальному числу врагов в волне
 
         StartCoroutine(SpawnEnemyWave());
     }
 
     private IEnumerator SpawnEnemyWave()
     {
-        while (totalEnemies > 0)
+        while (spawnEnemiesCount > 0)
         {
-            if (!canSpawn) yield break;
+            if (!CanSpawn) yield break;
 
             string randomEnemyType = GetRandomEnemyType();
             if (!string.IsNullOrEmpty(randomEnemyType))
             {
                 SpawnEnemy(randomEnemyType);
-                totalEnemies--;
-                Debug.Log($"Спавн {randomEnemyType}");
+                spawnEnemiesCount--;
             }
 
             yield return new WaitForSeconds(spawnInterval);
@@ -78,7 +80,7 @@ public class EnemySpawner : MonoBehaviour
         {
             GameObject enemyObj = Instantiate(enemyPrefab, spawnPosition, Quaternion.identity);
 
-            // Подписываемся на смерть врага
+            // Подписываемся на событие смерти врага
             EnemyAI enemyAI = enemyObj.GetComponent<EnemyAI>();
             if (enemyAI != null)
             {
@@ -112,15 +114,25 @@ public class EnemySpawner : MonoBehaviour
 
     private void HandleEnemyDeath()
     {
-        aliveEnemies--;
+        AliveEnemiesCount--;
 
-        Debug.Log($"Враг уничтожен! Осталось {aliveEnemies} врагов.");
+        Debug.Log($"Враг уничтожен! Осталось {AliveEnemiesCount} врагов.");
 
-        if (aliveEnemies <= 0)
+        if (AliveEnemiesCount <= 0)
         {
             Debug.Log("Все враги уничтожены! Завершаем игру.");
             gameManager.GameFinished();
         }
+    }
+
+    private int CountEnemies(List<Enemy> enemies)
+    {
+        int totalEnemies = 0;
+        foreach (Enemy enemy in enemies)
+        {
+            totalEnemies += enemy.amount;
+        }
+        return totalEnemies;
     }
 }
 

@@ -6,12 +6,12 @@ public class Bullet : MonoBehaviour
     public float maxDistance = 15f; // Максимальная дистанция полета
     public int damage = 50; // Урон пули
 
-    private Vector3 startPosition;
+    private Vector3 StartPosition;
     private Rigidbody2D rb;
 
     private void Start()
     {
-        startPosition = transform.position;
+        StartPosition = transform.position;
         rb = GetComponent<Rigidbody2D>();
 
         Destroy(gameObject, maxLifetime); // Удаляем пулю через maxLifetime секунд
@@ -20,7 +20,7 @@ public class Bullet : MonoBehaviour
     private void Update()
     {
         // Удаляем пулю, если она улетела слишком далеко
-        if (Vector3.Distance(startPosition, transform.position) > maxDistance)
+        if (Vector3.Distance(StartPosition, transform.position) > maxDistance)
         {
             Destroy(gameObject);
         }
