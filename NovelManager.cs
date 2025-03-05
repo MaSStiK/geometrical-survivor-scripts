@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -53,7 +54,7 @@ public class NovelManager : MonoBehaviour
         NovelText.text = currentData.text;
 
         // Устанавливаем портрет
-        Sprite portrait = Resources.Load<Sprite>("Characters/" + currentData.spriteName);
+        Sprite portrait = Resources.Load<Sprite>("Sprites/" + currentData.spriteName);
         if (portrait != null)
         {
             PortraitImage.sprite = portrait;
@@ -116,4 +117,20 @@ public class NovelManager : MonoBehaviour
             default: return "Asinastra SDF";
         }
     }
+}
+
+[Serializable]
+public class Novel
+{
+    public string name;
+    public string text;
+    public string font;
+    public string spriteName;
+    public string windowColor;
+}
+
+[Serializable]
+public class NovelData
+{
+    public List<Novel> novel;
 }

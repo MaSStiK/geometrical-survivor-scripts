@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Newtonsoft.Json;
 
 public class GameManager : MonoBehaviour
 {
@@ -27,8 +29,9 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        GameLevel gameLevel = JsonUtility.FromJson<GameLevel>(jsonFile.text);
-        eventQueue = new Queue<GameSequence>(gameLevel.game_level);
+        List<GameSequence> gameLevel = JsonConvert.DeserializeObject<List<GameSequence>>(jsonFile.text);
+        
+        eventQueue = new Queue<GameSequence>(gameLevel);
     }
 
     private void ProcessNextEvent()
@@ -71,7 +74,7 @@ public class GameManager : MonoBehaviour
         Debug.Log("Старт новеллы: " + novelName);
     }
 
-    private void StartGame(List<Enemy> enemies)
+    private void StartGame(List<EnemyWave> enemies)
     {
         SetVisibleGUI("game");
         enemySpawner.SpawnEnemies(enemies);
@@ -97,10 +100,10 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private int CountEnemies(List<Enemy> enemies)
+    private int CountEnemies(List<EnemyWave> enemies)
     {
         int totalEnemies = 0;
-        foreach (Enemy enemy in enemies)
+        foreach (EnemyWave enemy in enemies)
         {
             totalEnemies += enemy.amount;
         }
@@ -118,4 +121,13 @@ public class GameManager : MonoBehaviour
         Debug.Log("Битва завершена, переключаемся на следующий этап...");
         ProcessNextEvent();
     }
+}
+
+[Serializable]
+public class GameSequence
+{
+    public string type; // "novel", "game", "message"
+    public string novel_name; // Для типа "novel"
+    public List<EnemyWave> enemies; // Для типа "game"
+    public string message; // Для типа "message"
 }

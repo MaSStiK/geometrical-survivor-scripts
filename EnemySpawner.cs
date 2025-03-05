@@ -1,43 +1,48 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using Newtonsoft.Json;
 
 public class EnemySpawner : MonoBehaviour
 {
-    public List<EnemyPrefabData> enemyPrefabsList; // Список типов врагов и их префабов
     public GameManager gameManager;
+    public GameObject enemyPrefab; // Префаб врага, который будет клонироваться
     [SerializeField] private float spawnRadius = 1f; // Радиус за пределами экрана, где появляются враги
     [SerializeField] private float spawnInterval = 1f; // Интервал спавна
     public bool CanSpawn = false;
 
-    public int TotalEnemiesCount { get; private set; } // Общее количество врагов в волне
-    public int AliveEnemiesCount { get; private set; } // Количество живых врагов
-    private int spawnEnemiesCount; // Число врагов которое нужно заспавнить
+    public int TotalEnemiesCount { get; private set; }
+    public int AliveEnemiesCount { get; private set; }
+    private int spawnEnemiesCount;
 
     private Camera mainCamera;
-    private Dictionary<string, GameObject> enemyPrefabs = new Dictionary<string, GameObject>();
-    private List<Enemy> enemiesQueue = new List<Enemy>(); // Очередь врагов для спавна
+    private List<EnemyWave> enemiesQueue = new List<EnemyWave>(); // Очередь врагов для спавна
+    private Dictionary<string, EnemyData> enemyStats = new Dictionary<string, EnemyData>(); // Характеристики врагов
 
     void Start()
     {
         mainCamera = Camera.main;
-
-        foreach (var data in enemyPrefabsList)
-        {
-            enemyPrefabs[data.type] = data.prefab;
-        }
+        LoadEnemyStats(); // Загружаем характеристики врагов
     }
 
-    public void SpawnEnemies(List<Enemy> enemies)
+    private void LoadEnemyStats()
+    {
+        TextAsset jsonFile = Resources.Load<TextAsset>("EnemiesList"); // Файл EnemiesList.json должен быть в папке Resources
+        // Десериализуем JSON с использованием Newtonsoft.Json
+        enemyStats = JsonConvert.DeserializeObject<Dictionary<string, EnemyData>>(jsonFile.text);
+    }
+
+    public void SpawnEnemies(List<EnemyWave> enemies)
     {
         if (enemies == null || enemies.Count == 0) return;
 
         CanSpawn = true;
-        enemiesQueue = new List<Enemy>(enemies);
+        enemiesQueue = new List<EnemyWave>(enemies);
         spawnEnemiesCount = enemiesQueue.Sum(e => e.amount);
         TotalEnemiesCount = CountEnemies(enemies);
-        AliveEnemiesCount = TotalEnemiesCount; // Изначально количество врагов равно максимальному числу врагов в волне
+        AliveEnemiesCount = TotalEnemiesCount;
 
         StartCoroutine(SpawnEnemyWave());
     }
@@ -67,7 +72,7 @@ public class EnemySpawner : MonoBehaviour
 
         if (enemiesQueue.Count == 0) return null;
 
-        int randomIndex = Random.Range(0, enemiesQueue.Count);
+        int randomIndex = UnityEngine.Random.Range(0, enemiesQueue.Count);
         enemiesQueue[randomIndex].amount--;
 
         return enemiesQueue[randomIndex].type;
@@ -76,20 +81,37 @@ public class EnemySpawner : MonoBehaviour
     private void SpawnEnemy(string enemyType)
     {
         Vector3 spawnPosition = GetRandomSpawnPosition();
-        if (enemyPrefabs.TryGetValue(enemyType, out GameObject enemyPrefab))
-        {
-            GameObject enemyObj = Instantiate(enemyPrefab, spawnPosition, Quaternion.identity);
 
-            // Подписываемся на событие смерти врага
+        // Проверяем, существует ли тип врага в enemyStats
+        if (enemyStats.ContainsKey(enemyType))
+        {
+            // Получаем данные врага из enemyStats
+            EnemyData enemyData = enemyStats[enemyType];
+
+            // Создаем новый объект врага, используя префаб
+            GameObject enemyObj = Instantiate(enemyPrefab, spawnPosition, Quaternion.identity);
             EnemyAI enemyAI = enemyObj.GetComponent<EnemyAI>();
-            if (enemyAI != null)
+
+            // Загружаем спрайт из ресурсов
+            Sprite sprite = Resources.Load<Sprite>(enemyData.spritePath);
+            if (sprite != null)
             {
-                enemyAI.OnDeath += HandleEnemyDeath;
+                // Назначаем спрайт врага
+                SpriteRenderer spriteRenderer = enemyObj.GetComponent<SpriteRenderer>();
+                spriteRenderer.sprite = sprite;
             }
+            else
+            {
+                Debug.LogWarning($"Спрайт для врага {enemyType} не найден по пути: {enemyData.spritePath}");
+            }
+
+            // Передаем данные врага в EnemyAI
+            enemyAI.SetStats(enemyData.speed, enemyData.health, enemyData.armor, enemyData.damage);
+            enemyAI.OnDeath += HandleEnemyDeath;
         }
         else
         {
-            Debug.LogError($"Префаб для {enemyType} не найден!");
+            Debug.LogError($"Тип врага {enemyType} не найден в enemyStats!");
         }
     }
 
@@ -98,15 +120,15 @@ public class EnemySpawner : MonoBehaviour
         Vector3 screenBottomLeft = mainCamera.ScreenToWorldPoint(new Vector3(0, 0, mainCamera.transform.position.z));
         Vector3 screenTopRight = mainCamera.ScreenToWorldPoint(new Vector3(Screen.width, Screen.height, mainCamera.transform.position.z));
 
-        int side = Random.Range(0, 4);
+        int side = UnityEngine.Random.Range(0, 4);
         Vector3 spawnPos = Vector3.zero;
 
         switch (side)
         {
-            case 0: spawnPos = new Vector3(screenBottomLeft.x - spawnRadius, Random.Range(screenBottomLeft.y, screenTopRight.y), 0); break;
-            case 1: spawnPos = new Vector3(screenTopRight.x + spawnRadius, Random.Range(screenBottomLeft.y, screenTopRight.y), 0); break;
-            case 2: spawnPos = new Vector3(Random.Range(screenBottomLeft.x, screenTopRight.x), screenBottomLeft.y - spawnRadius, 0); break;
-            case 3: spawnPos = new Vector3(Random.Range(screenBottomLeft.x, screenTopRight.x), screenTopRight.y + spawnRadius, 0); break;
+            case 0: spawnPos = new Vector3(screenBottomLeft.x - spawnRadius, UnityEngine.Random.Range(screenBottomLeft.y, screenTopRight.y), 0); break;
+            case 1: spawnPos = new Vector3(screenTopRight.x + spawnRadius, UnityEngine.Random.Range(screenBottomLeft.y, screenTopRight.y), 0); break;
+            case 2: spawnPos = new Vector3(UnityEngine.Random.Range(screenBottomLeft.x, screenTopRight.x), screenBottomLeft.y - spawnRadius, 0); break;
+            case 3: spawnPos = new Vector3(UnityEngine.Random.Range(screenBottomLeft.x, screenTopRight.x), screenTopRight.y + spawnRadius, 0); break;
         }
 
         return spawnPos;
@@ -125,10 +147,10 @@ public class EnemySpawner : MonoBehaviour
         }
     }
 
-    private int CountEnemies(List<Enemy> enemies)
+    private int CountEnemies(List<EnemyWave> enemies)
     {
         int totalEnemies = 0;
-        foreach (Enemy enemy in enemies)
+        foreach (EnemyWave enemy in enemies)
         {
             totalEnemies += enemy.amount;
         }
@@ -136,9 +158,19 @@ public class EnemySpawner : MonoBehaviour
     }
 }
 
-[System.Serializable]
-public class EnemyPrefabData
+[Serializable]
+public class EnemyData
+{
+    public string spritePath; // Путь к спрайту в Resources
+    public int speed;
+    public int health;
+    public int armor;
+    public int damage;
+}
+
+[Serializable]
+public class EnemyWave
 {
     public string type;
-    public GameObject prefab;
+    public int amount;
 }
